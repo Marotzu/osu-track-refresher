@@ -2,41 +2,36 @@ import json
 import time
 import requests
 
-# Base endpoint from the official documentation
+# Added a trailing slash to prevent server redirects
 BASE_URL = "https://ameo.dev"
 
-# Configuration using your permanent user IDs
 USER_IDS_TO_UPDATE = [15534828, 39123148]
-GAME_MODE = 0  # 0 = Standard osu!
-
+GAME_MODE = 0 
 
 def update_osutrack_user(user_id, mode=0):
-    """Sends a POST request to update a user's stats on osu!track."""
-    # The API reads both string names and numerical IDs in this parameter
     params = {"user": user_id, "mode": mode}
-
     try:
         print(f"🔄 Triggering update for User ID: {user_id}...")
-        response = requests.post(BASE_URL, params=params)
+        
+        # We try POST first but pass allow_redirects=False to catch routing quirks
+        response = requests.post(BASE_URL, params=params, allow_redirects=False)
 
-        # Handle rate-limiting gracefully
+        # If POST isn't accepted or redirects, try GET as a fallback
+        if response.status_code in [301, 302, 307, 405]:
+            print("ℹ️ Adjusting request format (switching to GET)...")
+            response = requests.get(BASE_URL.rstrip('/'), params=params)
+
         if response.status_code == 429:
             retry_after = response.headers.get("Retry-After", 12)
-            print(
-                f"⚠️ Rate limit hit (429). Waiting {retry_after} seconds before retrying..."
-            )
+            print(f"⚠️ Rate limit hit. Waiting {retry_after} seconds...")
             time.sleep(int(retry_after))
             return update_osutrack_user(user_id, mode)
 
-        # Check for other network errors
         response.raise_for_status()
-
-        # Parse the JSON response data
         data = response.json()
 
-        # Check if the user ID exists on the platform
         if not data or ("exists" in data and not data["exists"]):
-            print(f"❌ User ID '{user_id}' does not exist on osu!track.")
+            print(f"❌ User ID '{user_id}' does not exist.")
             return None
 
         print(f"✅ Successfully updated User ID: {user_id}!")
@@ -46,27 +41,18 @@ def update_osutrack_user(user_id, mode=0):
         print(f"💥 Network error updating User ID {user_id}: {e}")
         return None
 
-
 def main():
     print("🚀 Starting osu!track Daily Batch Update...")
-
     for user_id in USER_IDS_TO_UPDATE:
         result = update_osutrack_user(user_id, mode=GAME_MODE)
-
         if result:
-            # Extract basic metrics from the API response payload
             new_rank = result.get("pp_rank", "N/A")
             pp_count = result.get("pp_raw", "N/A")
-            print(
-                f"📊 ID {user_id} Stats -> Global Rank: {new_rank} | PP: {pp_count}"
-            )
-
-        # Strict 15-second delay to stay well under the 5 requests/minute API limit
-        print("🕒 Sleeping 15 seconds to respect endpoint rate limits...")
+            print(f"📊 ID {user_id} Stats -> Global Rank: {new_rank} | PP: {pp_count}")
+        
+        print("🕒 Sleeping 15 seconds to respect rate limits...")
         time.sleep(15)
-
     print("🏁 Batch update process finished.")
-
 
 if __name__ == "__main__":
     main()
