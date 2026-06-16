@@ -1,77 +1,60 @@
-import json
-import time
+# import modules
 import requests
+import json
+from datetime import datetime, timedelta
+import time # Import time module for delays
 
-# Fixed URL: No trailing slash, as requested by the source routing
-BASE_URL = "https://ameo.dev"
+today = datetime.now()
+tomorrow = today + timedelta(days=1)
+tomorrow = tomorrow.strftime("%Y-%m-%d")
+today = today.strftime("%Y-%m-%d")
 
-USER_IDS_TO_UPDATE = [15534828, 39123148]
-GAME_MODE = 0  # 0 = Standard osu!
+# Specify the list of user IDs you want to process
+USER_IDS = [15534828, 39123148] # Example User IDs. You can add more here.
+MODE = 0 # Standard Mode
 
-def update_osutrack_user(user_id, mode=0):
-    params = {"user": user_id, "mode": mode}
-    
-    # Adding a custom User-Agent ensures the server doesn't block GitHub's automated traffic
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) osu-track-updater"
-    }
+# Function to process each user
+def process_user_update(user_id, mode):
+    print(f"\nProcessing update for User ID: {user_id}")
 
-    try:
-        print(f"🔄 Triggering update for User ID: {user_id}...")
-        
-        # Switched to a clean GET request based on the internal API routing structures
-        response = requests.get(BASE_URL, params=params, headers=headers)
+    # set url parameters as a dictionary
+    url_params = {'user': user_id, 'mode': mode, 'from': today, 'to': tomorrow}
 
-        # Handle rate-limiting gracefully
-        if response.status_code == 429:
-            retry_after = response.headers.get("Retry-After", 15)
-            print(f"⚠️ Rate limit hit. Waiting {retry_after} seconds...")
-            time.sleep(int(retry_after))
-            return update_osutrack_user(user_id, mode)
+    # data dictionary is still being sent as json.
+    data = {'key': 'value'}
 
-        # If it returns an unexpected error code, print out the raw text for clear debugging
-        if response.status_code != 200:
-            print(f"❌ Server returned status code {response.status_code}. Raw response text: {response.text[:200]}")
-            return None
+    # send update request to API
+    response = requests.post('https://osutrack-api.ameo.dev/update', json=data, params=url_params)
+    notimestamp = True
 
-        # Safe JSON decoding
-        data = response.json()
+    # Handling the Response
+    if response.status_code == 200:
+        print(f"Request successful with status code: {response.status_code}")
+        jsonout = response.json()
 
-        # Handle formatting errors if the server sends back an unexpected empty array or error
-        if isinstance(data, list) and len(data) == 0:
-            print(f"ℹ️ User ID '{user_id}' was processed, but returned no new data updates.")
-            return True
-            
-        if isinstance(data, dict) and "exists" in data and not data["exists"]:
-            print(f"❌ User ID '{user_id}' does not exist on osu!track.")
-            return None
+        # Find the latest date
+        if notimestamp == True:
+          for key, value in jsonout.items():
+            print(f"{key}: {value}")
+        elif notimestamp == False:
+          # This branch might not be reached for 'update' calls if notimestamp is always True
+          # but kept for consistency if logic changes later.
+          latest_date = max(item['timestamp'] for item in jsonout) # Find the maximum date
+          latest_data = next(item for item in jsonout if item['timestamp'] == latest_date)
+          for key, value in latest_data.items():
+            print(f"{key}: {value}")
+        else:
+          print(json.dumps(jsonout, indent=4))
 
-        print(f"✅ Successfully updated User ID: {user_id}!")
-        return data
+    else:
+        print(f"Request failed for User ID {user_id} with status code: {response.status_code}")
+        print(f"Response content: {response.text}")
 
-    except json.JSONDecodeError:
-        print(f"💥 Parsing error: The server returned plain text/HTML instead of JSON data. Raw context: {response.text[:150]}")
-        return None
-    except requests.exceptions.RequestException as e:
-        print(f"💥 Network error updating User ID {user_id}: {e}")
-        return None
+# Loop through the list of user IDs and process each one
+for user_id in USER_IDS:
+    process_user_update(user_id, MODE)
+    # Add a delay to avoid hitting rate limits on the API
+    print("Waiting for 5 seconds before next request...")
+    time.sleep(5)
 
-def main():
-    print("🚀 Starting osu!track Daily Batch Update...")
-    for user_id in USER_IDS_TO_UPDATE:
-        result = update_osutrack_user(user_id, mode=GAME_MODE)
-        
-        # If the API gave us a valid update dictionary with statistical changes
-        if isinstance(result, dict):
-            new_rank = result.get("pp_rank", "N/A")
-            pp_count = result.get("pp_raw", "N/A")
-            print(f"📊 ID {user_id} Stats -> Global Rank: {new_rank} | PP: {pp_count}")
-        
-        # Enforce a 15-second gap between targets to strictly honor the developer's requested guidelines
-        print("🕒 Sleeping 15 seconds to respect rate limits...")
-        time.sleep(15)
-        
-    print("🏁 Batch update process finished.")
-
-if __name__ == "__main__":
-    main()
+print("\nAll specified user IDs have been processed.")
