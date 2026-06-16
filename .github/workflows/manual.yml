@@ -1,0 +1,34 @@
+name: osu!track Automated Update (Test)
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+
+  workflow_dispatch:
+
+jobs:
+  run_osu_track_update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show trigger information
+        run: |
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Current UTC time:"
+          date -u
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run osu!track update script
+        run: python osu_track_updater.py
