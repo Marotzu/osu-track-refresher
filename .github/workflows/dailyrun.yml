@@ -5,7 +5,7 @@ on:
   # This example runs every hour.
   # For more info on cron syntax: https://crontab.guru/
   schedule:
-    - cron: '10 * * * *'
+    - cron: '0 * * * *'
   
   # Allows you to run this workflow manually from the Actions tab in GitHub
   workflow_dispatch:
