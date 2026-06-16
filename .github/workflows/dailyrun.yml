@@ -1,29 +1,32 @@
-name: Run Daily osu Track Refresher
+name: osu!track Automated Update
 
 on:
+  # Schedule the workflow to run at a specific time.
+  # This example runs every hour.
+  # For more info on cron syntax: https://crontab.guru/
   schedule:
-    # Runs automatically every single day at 6:00 AM UTC
-    - cron: '0 6 * * *'
-  # This enables a manual "Run" button in the GitHub dashboard
+    - cron: '0 * * * *'
+  
+  # Allows you to run this workflow manually from the Actions tab in GitHub
   workflow_dispatch:
 
 jobs:
-  run-script:
-    runs-on: ubuntu-latest
+  run_osu_track_update:
+    runs-on: ubuntu-latest # Specify the operating system for the job
 
     steps:
-    - name: Checkout repository code
+    - name: Checkout repository # Step to get your code from the repository
       uses: actions/checkout@v4
 
-    - name: Set up Python
+    - name: Set up Python # Step to set up the Python environment
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.9' # You can specify your preferred Python version (e.g., '3.10', '3.11')
 
-    - name: Install dependencies
+    - name: Install dependencies # Step to install any required Python packages
       run: |
         python -m pip install --upgrade pip
-        pip install requests
+        pip install requests # Install the requests library
 
-    - name: Execute Python script
-      run: python script.py
+    - name: Run osu!track update script # Step to execute your Python script
+      run: python osu_track_updater.py # The actual name of your Python file
