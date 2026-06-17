@@ -13,21 +13,21 @@ jobs:
     steps:
       - name: Trigger testupdater workflow
         run: |
-          curl -v -X POST \
+          curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
-            -d '{"ref":"main"}' \
-            https://api.github.com/repos/Marotzu/osu-track-refresher/actions/workflows/testupdater.yml/dispatches
+            -d '{"event_type":"trigger-testupdater"}' \
+            https://api.github.com/repos/Marotzu/osu-track-refresher/dispatches
 
   trigger-auto:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger autoupdate workflow
         run: |
-          curl -v -X POST \
+          curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
-            -d '{"ref":"main"}' \
-            https://api.github.com/repos/Marotzu/osu-track-refresher/actions/workflows/autoupdate.yml/dispatches
+            -d '{"event_type":"trigger-autoupdate"}' \
+            https://api.github.com/repos/Marotzu/osu-track-refresher/dispatches
