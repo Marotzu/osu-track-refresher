@@ -2,8 +2,8 @@ name: Trigger Other Workflows
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes for testupdater
-    - cron: '0 * * * *'    # 9 minutes past every hour for autoupdate
+    - cron: '*/5 * * * *'
+    - cron: '0 * * * *'
   
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ jobs:
       - name: Trigger testupdater workflow
         run: |
           curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ secrets.WORKFLOW_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
             -d '{"event_type":"trigger-testupdater"}' \
@@ -26,7 +26,7 @@ jobs:
       - name: Trigger autoupdate workflow
         run: |
           curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ secrets.WORKFLOW_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
             -d '{"event_type":"trigger-autoupdate"}' \
