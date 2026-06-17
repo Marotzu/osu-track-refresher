@@ -1,7 +1,8 @@
 name: osu!track Automated Update
 
 on:
-  workflow_dispatch:
+  repository_dispatch:
+    types: [trigger-autoupdate]
 
 jobs:
   run_osu_track_update:
