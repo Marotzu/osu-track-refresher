@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '*/5 * * * *'
 
-  workflow_dispatch:
+  repository_dispatch:
 
 jobs:
   run_osu_track_update:
