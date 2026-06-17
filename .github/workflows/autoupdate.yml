@@ -1,14 +1,7 @@
 name: osu!track Automated Update
 
 on:
-  # Schedule the workflow to run at a specific time.
-  # This example runs every hour.
-  # For more info on cron syntax: https://crontab.guru/
-  schedule:
-    - cron: '9 * * * *'
-  
-  # Allows you to run this workflow manually from the Actions tab in GitHub
-  repository_dispatch:
+  workflow_dispatch:
 
 jobs:
   run_osu_track_update:
