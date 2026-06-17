@@ -8,23 +8,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  trigger:
+  trigger-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger testupdater
-        if: github.event.schedule == '*/5 * * * *'
+      - name: Trigger testupdater workflow
         run: |
-          curl -X POST \
+          curl -v -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
             -d '{"ref":"main"}' \
             https://api.github.com/repos/Marotzu/osu-track-refresher/actions/workflows/testupdater.yml/dispatches
-      
-      - name: Trigger autoupdate
-        if: github.event.schedule == '9 * * * *'
+
+  trigger-auto:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger autoupdate workflow
         run: |
-          curl -X POST \
+          curl -v -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
