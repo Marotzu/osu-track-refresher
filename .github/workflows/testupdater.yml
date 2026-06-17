@@ -5,7 +5,8 @@ on:
     - cron: '*/5 * * * *'
 
   repository_dispatch:
-
+    types: [test-workflow]
+    
 jobs:
   run_osu_track_update:
     runs-on: ubuntu-latest
