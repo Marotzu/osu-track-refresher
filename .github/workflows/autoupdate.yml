@@ -8,7 +8,7 @@ on:
     - cron: '9 * * * *'
   
   # Allows you to run this workflow manually from the Actions tab in GitHub
-  workflow_dispatch:
+  repository_dispatch:
 
 jobs:
   run_osu_track_update:
